@@ -1,0 +1,32 @@
+{
+  "name": "netivo/woocommerce",
+  "description": "WP Core Library for Netivo themes to support WooCommerce",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "version": "1.0",
+  "authors": [
+    {
+      "name": "netivo",
+      "email": "biuro@netivo.pl"
+    },
+    {
+      "name": "Michał Świątek",
+      "email": "michal.swiatek@netivo.pl"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@github.com:netivo/wp-core.git"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "netivo/wp-core": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "Netivo\\Woocommerce\\": "src/Woocommerce"
+    }
+  }
+}
