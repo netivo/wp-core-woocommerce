@@ -7,7 +7,7 @@
  *
  */
 
-namespace Netivo\Woocommerce\Admin\Product;
+namespace Netivo\WooCommerce\Admin\Product;
 
 use ReflectionClass;
 

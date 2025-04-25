@@ -7,7 +7,7 @@
  *
  */
 
-namespace Netivo\Woocommerce\Product;
+namespace Netivo\WooCommerce\Product;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	header( 'HTTP/1.0 403 Forbidden' );

@@ -8,7 +8,7 @@
  * @package Netivo\Core
  */
 
-namespace Netivo\Woocommerce;
+namespace Netivo\WooCommerce;
 
 use Netivo\Core\Theme;
 
@@ -17,7 +17,7 @@ use Netivo\Core\Theme;
  *
  * Abstract Class to initialize WooCommerce elements in WordPress.
  */
-abstract class Woocommerce {
+abstract class WooCommerce {
 	/**
 	 * Include path for plugin, defined in child classes
 	 *
