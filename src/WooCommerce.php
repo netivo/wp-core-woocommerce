@@ -86,8 +86,8 @@ abstract class WooCommerce {
 	 * @throws \ReflectionException When error.
 	 */
 	protected function init_product_types(): void {
-		if ( ! empty( $this->modules['product_types'] ) ) {
-			foreach ( $this->modules['product_types'] as $type ) {
+		if ( ! empty( $this->modules['product_type'] ) ) {
+			foreach ( $this->modules['product_type'] as $type ) {
 				if ( class_exists( $type ) ) {
 					$type::register();
 				}

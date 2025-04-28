@@ -83,9 +83,16 @@ class Company {
 	}
 
 	public function add_javascript_to_page() {
-		if ( is_checkout() ) {
-			wp_enqueue_script( 'nt-dummy-order-js', '', array(), false, array( 'in_footer' => true ) );
-			wp_add_inline_script( 'nt-dummy-order-js', 'document.addEventListener("DOMContentLoaded",(()=>{let e=document.querySelectorAll(".js-fv-checkbox"),t=document.querySelectorAll(".js-fvat-to-show"),l=document.querySelectorAll(".js-fvat-to-hide");e.length>0&&t.length>0&&l.length>0&&(t.forEach((e=>{e.style.display="none"})),e.forEach((e=>{e.addEventListener("change",(e=>{"1"===e.target.value&&e.target.checked?(t.forEach((e=>{e.style.display="block"})),l.forEach((e=>{e.style.display="none"}))):(t.forEach((e=>{e.style.display="none"})),l.forEach((e=>{e.style.display="block"})))}))})))}));' );
+		$file = realpath( __DIR__ . '/../public/checkout.js' );
+
+		if ( is_checkout() && file_exists( $file ) ) {
+			$td    = get_template_directory();
+			$turl  = get_template_directory_uri();
+			$nfile = str_replace( $td, $turl, $file );
+			wp_enqueue_script( 'nt-wooocommerce-checkout', $nfile, array(), false, array(
+				'in_footer' => true,
+				'defer'     => true
+			) );
 		}
 	}
 
