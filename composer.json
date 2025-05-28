@@ -3,7 +3,7 @@
   "description": "WP Core Library for Netivo themes to support WooCommerce",
   "minimum-stability": "stable",
   "license": "proprietary",
-  "version": "1.0",
+  "version": "1.0.1",
   "authors": [
     {
       "name": "netivo",
@@ -22,7 +22,7 @@
   ],
   "require": {
     "php": ">=8.1",
-    "netivo/wp-core": "dev-master"
+    "netivo/wp-core": "^1.1.1"
   },
   "autoload": {
     "psr-4": {

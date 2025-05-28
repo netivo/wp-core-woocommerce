@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.0.1
+
+- Dependencies versioning
+
 ## Version 1.0
 
 - Created Main WooCommerce abstract class
