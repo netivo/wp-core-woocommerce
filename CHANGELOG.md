@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.2
+
+- Fixed JS for company fields in checkout
+- Added node for script and styles compiling
+
 ## Version 1.0.1
 
 - Dependencies versioning

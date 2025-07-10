@@ -1,0 +1,19 @@
+{
+  "_comment_git": "git+ssh://git@github.com:netivo/scripts.git",
+  "_comment_local": "file:/home/manveru/Projects/netivo/scripts",
+  "name": "netivo-woocommerce",
+  "version": "1.0.0",
+  "description": "Netivo Woocommerce base theme",
+  "main": "./sources/js/index.js",
+  "scripts": {
+    "develop": "netivo-scripts develop",
+    "build": "netivo-scripts build",
+    "lint": "netivo-scripts lint"
+  },
+  "author": "Netivo <biuro@netivo.pl> (http://netivo.pl)",
+  "license": "ISC",
+  "dependencies": {
+    "@netivo/scripts": "git+ssh://git@github.com:netivo/scripts.git",
+    "@wordpress/stylelint-config": "^23.16.0"
+  }
+}

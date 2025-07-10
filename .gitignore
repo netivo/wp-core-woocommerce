@@ -1,3 +1,4 @@
 .idea
 .vs_code
 vendor
+node_modules

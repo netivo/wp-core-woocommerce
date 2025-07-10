@@ -83,7 +83,7 @@ class Company {
 	}
 
 	public function add_javascript_to_page() {
-		$file = realpath( __DIR__ . '/../public/checkout.js' );
+		$file = realpath( __DIR__ . '/../dist/netivo-woocommerce-checkout.js' );
 
 		if ( is_checkout() && file_exists( $file ) ) {
 			$td    = get_template_directory();
