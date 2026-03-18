@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.4
+
+- Fixed JS for name fields visibility
+- Fixed the first name field class
+
 ## Version 1.0.3
 
 - Added filter for a person's name and surname hiding during checkout when the invoice is selected

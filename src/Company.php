@@ -98,9 +98,9 @@ class Company {
 
 	public function add_invoice_field( $fields ): array {
 		if ( apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
-			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-last js-fvat-to-hide' ];
+			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-first js-fvat-to-hide' ];
 		} else {
-			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-last' ];
+			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-first' ];
 		}
 		$fields['billing']['billing_first_name']['required'] = apply_filters( 'netivo/woocommerce/fv/name-required', false );
 		$fields['billing']['billing_first_name']['label']    = $fields['billing']['billing_first_name']['label'] . '*';
