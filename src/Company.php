@@ -97,19 +97,27 @@ class Company {
 	}
 
 	public function add_invoice_field( $fields ): array {
-		$fields['billing']['billing_first_name']['class']    = [ 'form-row form-row-first js-fvat-to-hide' ];
-		$fields['billing']['billing_first_name']['required'] = false;
+		if ( apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
+			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-last js-fvat-to-hide' ];
+		} else {
+			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-last' ];
+		}
+		$fields['billing']['billing_first_name']['required'] = apply_filters( 'netivo/woocommerce/fv/name-required', false );
 		$fields['billing']['billing_first_name']['label']    = $fields['billing']['billing_first_name']['label'] . '*';
-		$fields['billing']['billing_last_name']['class']     = [ 'form-row form-row-last js-fvat-to-hide' ];
-		$fields['billing']['billing_last_name']['required']  = false;
-		$fields['billing']['billing_last_name']['label']     = $fields['billing']['billing_last_name']['label'] . '*';
-		$fields['billing']['billing_company']['class']       = [ 'form-row form-row-last js-fvat-to-show' ];
-		$fields['billing']['billing_company']['priority']    = 30;
-		$fields['billing']['billing_company']['label']       = $fields['billing']['billing_company']['label'] . '*';
-		$fields['billing']['billing_nip']['class']           = [ 'form-row form-row-first js-fvat-to-show' ];
-		$fields['billing']['billing_nip']['required']        = false;
-		$fields['billing']['billing_nip']['label']           = __( 'NIP *', 'netivo' );
-		$fields['billing']['fv_vat']                         = array(
+		if ( apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
+			$fields['billing']['billing_last_name']['class'] = [ 'form-row form-row-last js-fvat-to-hide' ];
+		} else {
+			$fields['billing']['billing_last_name']['class'] = [ 'form-row form-row-last' ];
+		}
+		$fields['billing']['billing_last_name']['required'] = apply_filters( 'netivo/woocommerce/fv/name-required', false );
+		$fields['billing']['billing_last_name']['label']    = $fields['billing']['billing_last_name']['label'] . '*';
+		$fields['billing']['billing_company']['class']      = [ 'form-row form-row-last js-fvat-to-show' ];
+		$fields['billing']['billing_company']['priority']   = 30;
+		$fields['billing']['billing_company']['label']      = $fields['billing']['billing_company']['label'] . '*';
+		$fields['billing']['billing_nip']['class']          = [ 'form-row form-row-first js-fvat-to-show' ];
+		$fields['billing']['billing_nip']['required']       = false;
+		$fields['billing']['billing_nip']['label']          = __( 'NIP *', 'netivo' );
+		$fields['billing']['fv_vat']                        = array(
 			'type'        => 'radio',
 			'options'     => [
 				0 => __( 'Paragon / Faktura imienna', 'netivo' ),
@@ -143,10 +151,29 @@ class Company {
 			wc_add_notice( __( 'Proszę podać poprawny <strong>NIP</strong>', 'netivo' ), 'error' );
 		}
 
-		if ( ! empty( $_POST['fv_vat'] ) ) {
+		if ( ! empty( $_POST['fv_vat'] ) && apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
 			unset( $_POST['billing_first_name'] );
 			unset( $_POST['billing_last_name'] );
 		}
+	}
+
+	protected function validate_nip( $nip ): bool {
+		$nip = str_replace( [ '-', ' ' ], '', $nip );
+		if ( strlen( $nip ) == 10 ) {
+			$digits   = str_split( $nip, 1 );
+			$weights  = [ '6', '5', '7', '2', '3', '4', '5', '6', '7' ];
+			$checksum = intval( $digits[9] );
+			unset( $digits[9] );
+			$digits = array_map( function ( $x, $y ) {
+				return intval( $x ) * $y;
+			}, $digits, $weights );
+			$sum    = array_sum( $digits );
+			if ( $sum % 11 === $checksum ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -178,32 +205,12 @@ class Company {
 		return $address;
 	}
 
-
 	public function validate_customer_nip( $user_id, $address_type, $address ) {
 		if ( ! empty( $_POST['billing_nip'] ) ) {
 			if ( ! $this->validate_nip( $_POST['billing_nip'] ) ) {
 				wc_add_notice( __( 'Proszę podać poprawny <strong>NIP</strong>', 'netivo' ), 'error' );
 			}
 		}
-	}
-
-	protected function validate_nip( $nip ): bool {
-		$nip = str_replace( [ '-', ' ' ], '', $nip );
-		if ( strlen( $nip ) == 10 ) {
-			$digits   = str_split( $nip, 1 );
-			$weights  = [ '6', '5', '7', '2', '3', '4', '5', '6', '7' ];
-			$checksum = intval( $digits[9] );
-			unset( $digits[9] );
-			$digits = array_map( function ( $x, $y ) {
-				return intval( $x ) * $y;
-			}, $digits, $weights );
-			$sum    = array_sum( $digits );
-			if ( $sum % 11 === $checksum ) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 }

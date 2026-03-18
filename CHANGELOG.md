@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.3
+
+- Added filter for a person's name and surname hiding during checkout when the invoice is selected
+- Added filter for a person's name and surname requirement during checkout when the invoice is selected
+
 ## Version 1.0.2
 
 - Fixed JS for company fields in checkout
