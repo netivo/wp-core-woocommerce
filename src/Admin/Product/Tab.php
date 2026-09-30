@@ -100,7 +100,7 @@ abstract class Tab {
 		$obj  = new ReflectionClass( $this );
 		$data = $obj->getAttributes();
 		foreach ( $data as $attribute ) {
-			if ( $attribute->getName() == 'Netivo\Attributes\View' ) {
+			if ( $attribute->getName() === 'Netivo\Attributes\View' ) {
 				$name = $attribute->getArguments()[0];
 			}
 		}
@@ -116,7 +116,8 @@ abstract class Tab {
 		$filename = $this->path . '/woocommerce/product/tabs/' . $name . '.phtml';
 
 		if ( file_exists( $filename ) ) {
-			echo '<div id="nt_' . $this->id . '_product_data" class="panel woocommerce_options_panel">';
+			echo '<div id="nt_' . esc_attr( $this->id ) . '_product_data" class="panel woocommerce_options_panel">';
+			// phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable -- $filename is built from the theme's own admin path plus a class-derived name, not user input.
 			include $filename;
 			echo '</div>';
 		} else {

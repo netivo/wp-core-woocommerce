@@ -21,12 +21,26 @@
     }
   ],
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.4",
     "netivo/wp-core": "^1.1.1"
   },
   "autoload": {
     "psr-4": {
       "Netivo\\WooCommerce\\": "src/"
     }
+  },
+  "require-dev": {
+    "automattic/vipwpcs": "^3.1",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+    "phpcompatibility/php-compatibility": "^9.3"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "lint": "phpcs --standard=phpcs.xml.dist -d memory_limit=1024M --runtime-set timeout 300",
+    "lint:fix": "phpcbf --standard=phpcs.xml.dist -d memory_limit=1024M --runtime-set timeout 300"
   }
 }

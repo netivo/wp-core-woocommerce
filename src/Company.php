@@ -128,7 +128,7 @@ class Company {
 	 * @return array Modified formatted billing address data.
 	 */
 	public function add_nip_to_order_address( $data, $order ) {
-		if ( $order->get_meta( '_fv_vat' ) == '1' ) {
+		if ( $order->get_meta( '_fv_vat' ) === '1' ) {
 			$data['nip'] = $order->get_meta( '_nip' );
 		}
 
@@ -224,25 +224,33 @@ class Company {
 	 * Hooked to `woocommerce_checkout_process`.
 	 */
 	public function validate_nip_field(): void {
-		if ( empty( $_POST['fv_vat'] ) && empty( $_POST['billing_first_name'] ) ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- WooCommerce verifies the `woocommerce-process_checkout` nonce before this action fires.
+		$fv_vat     = isset( $_POST['fv_vat'] ) ? sanitize_text_field( wp_unslash( $_POST['fv_vat'] ) ) : '';
+		$first_name = isset( $_POST['billing_first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_first_name'] ) ) : '';
+		$last_name  = isset( $_POST['billing_last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_last_name'] ) ) : '';
+		$company    = isset( $_POST['billing_company'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_company'] ) ) : '';
+		$nip        = isset( $_POST['billing_nip'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_nip'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( empty( $fv_vat ) && empty( $first_name ) ) {
 			wc_add_notice( __( '<strong>Imię</strong> jest wymaganym polem.', 'netivo' ), 'error' );
 		}
-		if ( empty( $_POST['fv_vat'] ) && empty( $_POST['billing_last_name'] ) ) {
+		if ( empty( $fv_vat ) && empty( $last_name ) ) {
 			wc_add_notice( __( '<strong>Nazwisko</strong> jest wymaganym polem.', 'netivo' ), 'error' );
 		}
-		if ( ! empty( $_POST['fv_vat'] ) && empty( $_POST['billing_company'] ) ) {
+		if ( ! empty( $fv_vat ) && empty( $company ) ) {
 			wc_add_notice( __( '<strong>Nazwa firmy</strong> jest wymaganym polem.', 'netivo' ), 'error' );
 		}
-		if ( ! empty( $_POST['fv_vat'] ) && empty( $_POST['billing_nip'] ) ) {
+		if ( ! empty( $fv_vat ) && empty( $nip ) ) {
 			wc_add_notice( __( '<strong>NIP</strong> jest wymaganym polem.', 'netivo' ), 'error' );
 		}
-		if ( ! empty( $_POST['fv_vat'] ) && ! $this->validate_nip( $_POST['billing_nip'] ) ) {
+		if ( ! empty( $fv_vat ) && ! $this->validate_nip( $nip ) ) {
 			wc_add_notice( __( 'Proszę podać poprawny <strong>NIP</strong>', 'netivo' ), 'error' );
 		}
 
-		if ( ! empty( $_POST['fv_vat'] ) && apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
-			unset( $_POST['billing_first_name'] );
-			unset( $_POST['billing_last_name'] );
+		if ( ! empty( $fv_vat ) && apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce verifies the `woocommerce-process_checkout` nonce before this action fires.
+			unset( $_POST['billing_first_name'], $_POST['billing_last_name'] );
 		}
 	}
 
@@ -256,7 +264,7 @@ class Company {
 	 */
 	protected function validate_nip( $nip ): bool {
 		$nip = str_replace( [ '-', ' ' ], '', $nip );
-		if ( strlen( $nip ) == 10 ) {
+		if ( strlen( $nip ) === 10 ) {
 			$digits   = str_split( $nip, 1 );
 			$weights  = [ '6', '5', '7', '2', '3', '4', '5', '6', '7' ];
 			$checksum = intval( $digits[9] );
@@ -282,13 +290,18 @@ class Company {
 	 * @param \WC_Order $order Order being created.
 	 */
 	public function save_nip_field( \WC_Order $order ): void {
-		if ( ! empty( $_POST['fv_vat'] ) ) {
-			$order->update_meta_data( '_fv_vat', sanitize_text_field( $_POST['fv_vat'] ) );
-			if ( ! empty( $_POST['billing_nip'] ) ) {
-				$order->update_meta_data( '_nip', sanitize_text_field( $_POST['billing_nip'] ) );
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- WooCommerce verifies the `woocommerce-process_checkout` nonce before this action fires.
+		$fv_vat = isset( $_POST['fv_vat'] ) ? sanitize_text_field( wp_unslash( $_POST['fv_vat'] ) ) : '';
+		$nip    = isset( $_POST['billing_nip'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_nip'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! empty( $fv_vat ) ) {
+			$order->update_meta_data( '_fv_vat', $fv_vat );
+			if ( ! empty( $nip ) ) {
+				$order->update_meta_data( '_nip', $nip );
 				$customer_id = $order->get_customer_id();
 				if ( ! empty( $customer_id ) ) {
-					update_user_meta( $customer_id, 'billing_nip', sanitize_text_field( $_POST['billing_nip'] ) );
+					update_user_meta( $customer_id, 'billing_nip', $nip );
 				}
 			}
 		}
@@ -306,7 +319,7 @@ class Company {
 	 * @return array Modified formatted address data.
 	 */
 	public function add_nip_to_customer_address( $address, $customer_id, $address_type ) {
-		if ( $address_type == 'billing' ) {
+		if ( $address_type === 'billing' ) {
 			$nip = get_user_meta( $customer_id, 'billing_nip', true );
 			if ( ! empty( $nip ) ) {
 				$address['nip'] = $nip;
@@ -322,15 +335,17 @@ class Company {
 	 *
 	 * Hooked to `woocommerce_after_save_address_validation`.
 	 *
-	 * @param int    $user_id      Customer user ID.
-	 * @param string $address_type Address type being saved (e.g. `billing`).
-	 * @param array  $address      Submitted address data.
+	 * @param int    $_user_id      Customer user ID. Unused, required by the hook signature.
+	 * @param string $_address_type Address type being saved (e.g. `billing`). Unused, required by the hook signature.
+	 * @param array  $_address      Submitted address data. Unused, required by the hook signature.
 	 */
-	public function validate_customer_nip( $user_id, $address_type, $address ) {
-		if ( ! empty( $_POST['billing_nip'] ) ) {
-			if ( ! $this->validate_nip( $_POST['billing_nip'] ) ) {
-				wc_add_notice( __( 'Proszę podać poprawny <strong>NIP</strong>', 'netivo' ), 'error' );
-			}
+	// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- Parameters are required by the `woocommerce_after_save_address_validation` hook signature.
+	public function validate_customer_nip( $_user_id, $_address_type, $_address ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce verifies the `woocommerce-edit_address` nonce before this action fires.
+		$nip = isset( $_POST['billing_nip'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_nip'] ) ) : '';
+
+		if ( ! empty( $nip ) && ! $this->validate_nip( $nip ) ) {
+			wc_add_notice( __( 'Proszę podać poprawny <strong>NIP</strong>', 'netivo' ), 'error' );
 		}
 	}
 
