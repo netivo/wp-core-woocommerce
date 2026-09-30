@@ -42,9 +42,12 @@ abstract class WooCommerce {
 	/**
 	 * Woocommerce constructor.
 	 *
-	 * @param string $include_path Include path for plugin.
+	 * Reads the `modules.woocommerce` configuration from the theme's main class,
+	 * always initializes the {@see Company} integration, then runs variable,
+	 * product type, and (when in wp-admin) product tab initialization, delegating
+	 * to the abstract hooks implemented by the child class.
 	 *
-	 * @throws \ReflectionException When error.
+	 * @param Theme $main_class Main class instance of the theme.
 	 */
 	public function __construct( $main_class ) {
 		$this->main_class = $main_class;
@@ -68,7 +71,9 @@ abstract class WooCommerce {
 	/**
 	 * Initialize new tab in woocommerce product data metabox.
 	 *
-	 * @throws \ReflectionException When error.
+	 * Instantiates every class listed in `modules['product_tabs']` (each must
+	 * extend {@see \Netivo\WooCommerce\Admin\Product\Tab}), passing the theme's
+	 * view path so the tab can locate its `.phtml` template.
 	 */
 	protected function init_product_tabs(): void {
 		if ( ! empty( $this->modules['product_tabs'] ) ) {
@@ -81,9 +86,12 @@ abstract class WooCommerce {
 	}
 
 	/**
-	 * Initialize new product type
+	 * Initialize new product type.
 	 *
-	 * @throws \ReflectionException When error.
+	 * Calls the static `register()` method on every class listed in
+	 * `modules['product_type']` (each must extend
+	 * {@see \Netivo\WooCommerce\Product\Type}) to register it as a custom
+	 * WooCommerce product type.
 	 */
 	protected function init_product_types(): void {
 		if ( ! empty( $this->modules['product_type'] ) ) {
@@ -97,14 +105,25 @@ abstract class WooCommerce {
 
 	/**
 	 * Init custom data in woocommerce panel for child use.
+	 *
+	 * Called on every request, after {@see self::init_product_types()}.
+	 * Implemented by the theme's concrete subclass.
 	 */
 	abstract protected function init_child(): void;
 
 	/**
 	 * Init custom data in woocommerce admin panel for child use.
+	 *
+	 * Called only when {@see is_admin()}, after {@see self::init_product_tabs()}.
+	 * Implemented by the theme's concrete subclass.
 	 */
 	abstract protected function init_child_admin(): void;
 
+	/**
+	 * Initialize class variables/properties before the rest of the bootstrap runs.
+	 *
+	 * Called first in the constructor. Implemented by the theme's concrete subclass.
+	 */
 	abstract protected function init_vars(): void;
 
 }

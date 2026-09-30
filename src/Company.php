@@ -14,8 +14,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Class Company
+ *
+ * Adds Polish invoicing support (NIP tax id, VAT invoice vs. receipt choice)
+ * to WooCommerce billing fields, checkout, order storage, and the customer
+ * account address book. Always instantiated by {@see WooCommerce::__construct()}.
+ */
 class Company {
 
+	/**
+	 * Company constructor.
+	 *
+	 * Registers all WordPress/WooCommerce filters and actions used to add,
+	 * validate, and persist the NIP/invoice fields.
+	 */
 	public function __construct() {
 		/**
 		 * Fields
@@ -45,6 +58,16 @@ class Company {
 	}
 
 
+	/**
+	 * Adds a `billing_nip` field to the WooCommerce billing fields and
+	 * reorders/repositions the company field next to it.
+	 *
+	 * Hooked to `woocommerce_billing_fields`.
+	 *
+	 * @param array $address Billing fields definition.
+	 *
+	 * @return array Modified billing fields definition.
+	 */
 	public function add_nip_field_to_address( $address ) {
 		$address['billing_nip']                    = array(
 			'required'    => false,
@@ -62,18 +85,48 @@ class Company {
 		return $address;
 	}
 
+	/**
+	 * Adds a `{nip}` placeholder to the Polish (PL) address format.
+	 *
+	 * Hooked to `woocommerce_localisation_address_formats`.
+	 *
+	 * @param array $formats Country code => address format string map.
+	 *
+	 * @return array Modified format map.
+	 */
 	public function change_address_format( $formats ) {
 		$formats['PL'] = "{nip}\n{company}\n{name}\n{address_1}\n{address_2}\n{postcode} {city}\n{country}";
 
 		return $formats;
 	}
 
+	/**
+	 * Resolves the `{nip}` placeholder used in {@see self::change_address_format()}.
+	 *
+	 * Hooked to `woocommerce_formatted_address_replacements`.
+	 *
+	 * @param array $replacement Placeholder => replacement value map.
+	 * @param array $args        Address arguments, including `nip` when present.
+	 *
+	 * @return array Modified replacement map.
+	 */
 	public function change_address_format_replace( $replacement, $args ) {
 		$replacement['{nip}'] = ( ! empty( $args['nip'] ) ) ? 'NIP: ' . $args['nip'] : '';
 
 		return $replacement;
 	}
 
+	/**
+	 * Adds the stored NIP to an order's formatted billing address when the
+	 * order was placed as a VAT invoice.
+	 *
+	 * Hooked to `woocommerce_order_formatted_billing_address`.
+	 *
+	 * @param array     $data  Formatted billing address data.
+	 * @param \WC_Order $order Order the address belongs to.
+	 *
+	 * @return array Modified formatted billing address data.
+	 */
 	public function add_nip_to_order_address( $data, $order ) {
 		if ( $order->get_meta( '_fv_vat' ) == '1' ) {
 			$data['nip'] = $order->get_meta( '_nip' );
@@ -82,6 +135,16 @@ class Company {
 		return $data;
 	}
 
+	/**
+	 * Enqueues the checkout invoice/receipt toggle script on the checkout page.
+	 *
+	 * The script is expected at `dist/netivo-woocommerce-checkout.js` relative
+	 * to this package, but is resolved and served from the active theme's
+	 * directory (the package is assumed to be deployed under the theme).
+	 * Silently does nothing if the built file is missing.
+	 *
+	 * Hooked to `wp_enqueue_scripts`.
+	 */
 	public function add_javascript_to_page() {
 		$file = realpath( __DIR__ . '/../dist/netivo-woocommerce-checkout.js' );
 
@@ -96,6 +159,21 @@ class Company {
 		}
 	}
 
+	/**
+	 * Adds the `fv_vat` receipt/invoice choice field and styles the name,
+	 * company, and NIP checkout fields so the front-end script
+	 * (`checkout.js`) can toggle them based on that choice.
+	 *
+	 * Name field visibility/requirement is controlled by the
+	 * `netivo/woocommerce/fv/hide-name` and `netivo/woocommerce/fv/name-required`
+	 * filters, which the consuming theme may override.
+	 *
+	 * Hooked to `woocommerce_checkout_fields`.
+	 *
+	 * @param array $fields Checkout fields definition.
+	 *
+	 * @return array Modified checkout fields definition.
+	 */
 	public function add_invoice_field( $fields ): array {
 		if ( apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
 			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-first js-fvat-to-hide' ];
@@ -134,6 +212,17 @@ class Company {
 		return $fields;
 	}
 
+	/**
+	 * Validates checkout submission: requires first/last name for a receipt,
+	 * or company name and a valid NIP for a VAT invoice. Adds a WooCommerce
+	 * notice for each failed rule.
+	 *
+	 * When a VAT invoice is requested and `netivo/woocommerce/fv/hide-name` is
+	 * true, also strips the submitted name fields from `$_POST` so they are
+	 * not persisted.
+	 *
+	 * Hooked to `woocommerce_checkout_process`.
+	 */
 	public function validate_nip_field(): void {
 		if ( empty( $_POST['fv_vat'] ) && empty( $_POST['billing_first_name'] ) ) {
 			wc_add_notice( __( '<strong>Imię</strong> jest wymaganym polem.', 'netivo' ), 'error' );
@@ -157,6 +246,14 @@ class Company {
 		}
 	}
 
+	/**
+	 * Validates a Polish NIP (tax id) using the standard 10-digit weighted
+	 * mod-11 checksum algorithm.
+	 *
+	 * @param string $nip NIP to validate, with or without dashes/spaces.
+	 *
+	 * @return bool True when the NIP has a valid checksum.
+	 */
 	protected function validate_nip( $nip ): bool {
 		$nip = str_replace( [ '-', ' ' ], '', $nip );
 		if ( strlen( $nip ) == 10 ) {
@@ -177,9 +274,12 @@ class Company {
 	}
 
 	/**
-	 * @param $order \WC_Order
+	 * Persists the invoice choice to order meta and, when a NIP was submitted,
+	 * saves it to order meta and to the customer's `billing_nip` user meta.
 	 *
-	 * @return void
+	 * Hooked to `woocommerce_checkout_create_order`.
+	 *
+	 * @param \WC_Order $order Order being created.
 	 */
 	public function save_nip_field( \WC_Order $order ): void {
 		if ( ! empty( $_POST['fv_vat'] ) ) {
@@ -194,6 +294,17 @@ class Company {
 		}
 	}
 
+	/**
+	 * Adds the stored NIP to a customer's formatted billing address.
+	 *
+	 * Hooked to `woocommerce_my_account_my_address_formatted_address`.
+	 *
+	 * @param array  $address      Formatted address data.
+	 * @param int    $customer_id  Customer user ID.
+	 * @param string $address_type Address type (e.g. `billing`, `shipping`).
+	 *
+	 * @return array Modified formatted address data.
+	 */
 	public function add_nip_to_customer_address( $address, $customer_id, $address_type ) {
 		if ( $address_type == 'billing' ) {
 			$nip = get_user_meta( $customer_id, 'billing_nip', true );
@@ -205,6 +316,16 @@ class Company {
 		return $address;
 	}
 
+	/**
+	 * Validates the NIP submitted when a customer saves an address in their
+	 * account, adding a WooCommerce notice if it fails the checksum.
+	 *
+	 * Hooked to `woocommerce_after_save_address_validation`.
+	 *
+	 * @param int    $user_id      Customer user ID.
+	 * @param string $address_type Address type being saved (e.g. `billing`).
+	 * @param array  $address      Submitted address data.
+	 */
 	public function validate_customer_nip( $user_id, $address_type, $address ) {
 		if ( ! empty( $_POST['billing_nip'] ) ) {
 			if ( ! $this->validate_nip( $_POST['billing_nip'] ) ) {
