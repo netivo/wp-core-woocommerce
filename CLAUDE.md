@@ -22,7 +22,7 @@ JS source lives in `sources/javascript/entries/checkout.js` and is bundled to `d
 
 `WooCommerce` (`src/WooCommerce.php`) is an abstract class meant to be extended by the consuming theme. Its constructor:
 1. Receives the theme's main `Theme` instance (`$main_class`) and reads a `modules.woocommerce` config array off it (`$main_class->get_configuration()`).
-2. Always instantiates `Company` (billing/NIP/invoice logic — always on).
+2. Always instantiates `Company` (billing/NIP/invoice logic) and `CashOnDelivery` (shipping-based gateway restriction) — both always on.
 3. Calls `init_vars()`, `init_product_types()`, then the abstract `init_child()` hook for subclass-specific setup.
 4. On `is_admin()`, also calls `init_product_tabs()` and the abstract `init_child_admin()`.
 
@@ -48,3 +48,7 @@ Two of the `modules` config entries drive dynamic class loading by fully-qualifi
 - Enqueues `dist/netivo-woocommerce-checkout.js` on the checkout page only, resolved from the theme's `template_directory` (not this package's own path — it assumes `dist/` is deployed under the active theme's directory).
 
 The `checkout.js` source toggles visibility between `.js-fvat-to-show` (company/NIP fields) and `.js-fvat-to-hide` (personal name fields) based on the `.js-fv-checkbox` radio selection — this is the client-side counterpart to the `hide-name` filter logic in `Company::add_invoice_field()`.
+
+### CashOnDelivery: shipping-based payment restriction
+
+`CashOnDelivery` (`src/CashOnDelivery.php`) hooks `woocommerce_available_payment_gateways` and, when any package's chosen shipping rate label contains the configured fragment (case-insensitive), removes every gateway except `cod`. The fragment is stored in the `netivo_cod_shipping_label` option (default `pobranie`), exposed in WooCommerce > Settings > Shipping > Shipping options via `woocommerce_shipping_settings`. An empty value disables the restriction.

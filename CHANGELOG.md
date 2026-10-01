@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.5
+
+- Added hiding of online payment gateways when a cash on delivery shipping method is chosen
+- Added a setting in WooCommerce > Settings > Shipping > Shipping options for the cash on delivery shipping label fragment (default `pobranie`)
+
 ## Version 1.0.4
 
 - Fixed JS for name fields visibility

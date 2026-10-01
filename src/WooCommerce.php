@@ -43,7 +43,7 @@ abstract class WooCommerce {
 	 * Woocommerce constructor.
 	 *
 	 * Reads the `modules.woocommerce` configuration from the theme's main class,
-	 * always initializes the {@see Company} integration, then runs variable,
+	 * always initializes the {@see Company} and {@see CashOnDelivery} integrations, then runs variable,
 	 * product type, and (when in wp-admin) product tab initialization, delegating
 	 * to the abstract hooks implemented by the child class.
 	 *
@@ -57,6 +57,7 @@ abstract class WooCommerce {
 		}
 
 		new Company();
+		new CashOnDelivery();
 
 		$this->init_vars();
 		$this->init_product_types();
