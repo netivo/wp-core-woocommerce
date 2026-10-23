@@ -41,9 +41,10 @@ Two of the `modules` config entries drive dynamic class loading by fully-qualifi
 ### Company: checkout/invoice logic
 
 `Company` (`src/Company.php`) is the concrete, always-loaded piece of WooCommerce integration. It hooks into WooCommerce billing fields, address formatting, checkout, and account pages to support Polish invoicing requirements:
-- Adds a `billing_nip` field (Polish tax ID / NIP) and a `fv_vat` radio (receipt vs. VAT invoice) to checkout.
+- Adds a `billing_nip` field (tax number) and a `fv_vat` radio (receipt vs. VAT invoice) to checkout. The field is labelled "NIP" for Poland and "VAT / Tax ID" for other billing countries; when no country is known (guests, empty POST) the store base country is used.
 - Two filters control name-field behavior when invoice is selected, both defaulting to `true`/`false` and overridable by the consuming theme: `netivo/woocommerce/fv/hide-name` and `netivo/woocommerce/fv/name-required`.
-- Validates NIP checksum (`validate_nip()` — Polish 10-digit mod-11 algorithm) during checkout and account address saves.
+- Validates the tax number per billing country (`validate_nip()`) during checkout and billing address saves: PL uses the 10-digit mod-11 NIP checksum, countries in `EU_VAT_PATTERNS` (EU, GB, CH, NO) a structural VAT format check with an optional country prefix (`VAT_PREFIX_ALIASES` maps prefixes that differ from the ISO code, e.g. `EL` for `GR`), other countries a generic sanity check.
+- Adds a `{nip}` line to address formats: PL gets a fixed format, `EU_VAT_PATTERNS` countries get the line prepended to their own WooCommerce format (or `default`), so local layouts are kept.
 - Persists `_fv_vat`/`_nip` order meta and `billing_nip` user meta.
 - Enqueues `dist/netivo-woocommerce-checkout.js` on the checkout page only, resolved from the theme's `template_directory` (not this package's own path — it assumes `dist/` is deployed under the active theme's directory).
 
