@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.1.1
+
+- Changed required mark for company / client name fields on the checkout
+
 ## Version 1.1
 
 - Added tax number support for non-Polish billing countries: the field is labelled "VAT / Tax ID" outside Poland ("NIP" in Poland) on the checkout, in the account address form, in addresses and in checkout notices. The checkout label follows the billing country at page load

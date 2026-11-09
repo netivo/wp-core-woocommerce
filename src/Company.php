@@ -248,21 +248,23 @@ class Company {
 		} else {
 			$fields['billing']['billing_first_name']['class'] = [ 'form-row form-row-first' ];
 		}
+		$required_mark = ' <abbr class="required" title="' . esc_attr__( 'required', 'woocommerce' ) . '">*</abbr>';
+
 		$fields['billing']['billing_first_name']['required'] = apply_filters( 'netivo/woocommerce/fv/name-required', false );
-		$fields['billing']['billing_first_name']['label']    = $fields['billing']['billing_first_name']['label'] . '*';
+		$fields['billing']['billing_first_name']['label']    = $fields['billing']['billing_first_name']['label'] . $required_mark;
 		if ( apply_filters( 'netivo/woocommerce/fv/hide-name', true ) ) {
 			$fields['billing']['billing_last_name']['class'] = [ 'form-row form-row-last js-fvat-to-hide' ];
 		} else {
 			$fields['billing']['billing_last_name']['class'] = [ 'form-row form-row-last' ];
 		}
 		$fields['billing']['billing_last_name']['required'] = apply_filters( 'netivo/woocommerce/fv/name-required', false );
-		$fields['billing']['billing_last_name']['label']    = $fields['billing']['billing_last_name']['label'] . '*';
+		$fields['billing']['billing_last_name']['label']    = $fields['billing']['billing_last_name']['label'] . $required_mark;
 		$fields['billing']['billing_company']['class']      = [ 'form-row form-row-last js-fvat-to-show' ];
 		$fields['billing']['billing_company']['priority']   = 30;
-		$fields['billing']['billing_company']['label']      = $fields['billing']['billing_company']['label'] . '*';
+		$fields['billing']['billing_company']['label']      = $fields['billing']['billing_company']['label'] . $required_mark;
 		$fields['billing']['billing_nip']['class']          = [ 'form-row form-row-first js-fvat-to-show' ];
 		$fields['billing']['billing_nip']['required']       = false;
-		$fields['billing']['billing_nip']['label']          = $this->get_tax_number_label( $this->get_customer_country() ) . ' *';
+		$fields['billing']['billing_nip']['label']          = $this->get_tax_number_label( $this->get_customer_country() ) . $required_mark;
 		$fields['billing']['fv_vat']                        = array(
 			'type'        => 'radio',
 			'options'     => [
